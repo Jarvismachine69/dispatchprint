@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your Orders</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:#F5F4F1;color:#1A1A18;min-height:100vh;padding:24px 16px 60px}
+.wrap{max-width:680px;margin:0 auto}
+
+/* Header */
+.brand{text-align:center;margin-bottom:28px}
+.brand-name{font-size:20px;font-weight:700;color:#1A1A18;letter-spacing:-.3px}
+.brand-tagline{font-size:12px;color:#888780;margin-top:3px}
+.welcome{font-size:15px;color:#5F5E5A;text-align:center;margin-bottom:24px;line-height:1.5}
+.welcome strong{color:#1A1A18}
+
+/* Tabs */
+.tabs{display:flex;gap:0;background:#fff;border:1px solid #E8E7E3;border-radius:14px;padding:4px;margin-bottom:20px}
+.tab{flex:1;padding:10px 16px;border-radius:10px;border:none;background:transparent;font-size:14px;font-weight:600;color:#888780;cursor:pointer;transition:.15s;font-family:inherit}
+.tab.active{background:#3B5BDB;color:#fff}
+.tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;font-size:11px;font-weight:700;padding:0 5px;margin-left:6px}
+.tab.active .tab-count{background:rgba(255,255,255,.25);color:#fff}
+.tab:not(.active) .tab-count{background:#F1F0ED;color:#888780}
+
+/* Job card */
+.job-card{background:#fff;border-radius:16px;border:1px solid #E8E7E3;overflow:hidden;margin-bottom:12px}
+.job-head{padding:16px 18px;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.job-head:hover{background:#FAFAF8}
+.job-id{font-size:11px;font-weight:700;color:#3B5BDB;font-family:monospace;letter-spacing:.5px;margin-bottom:3px}
+.job-client{font-size:16px;font-weight:700;color:#1A1A18}
+.job-ref{font-size:12px;color:#888780;font-style:italic;margin-top:2px}
+.job-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill-due-over{background:#FEE2E2;color:#991B1B}
+.pill-due-today{background:#FEF3C7;color:#92400E}
+.pill-due-tmr{background:#DBEAFE;color:#1E3A8A}
+.pill-due-ok{background:#F0FDF4;color:#065F46}
+.pill-dispatch{background:#F1F0ED;color:#5F5E5A}
+.pill-done{background:#D1FAE5;color:#065F46}
+.pill-brand{background:#EEF2FF;color:#3730A3}
+.job-chevron{color:#C4C3BE;font-size:18px;flex-shrink:0;transition:.2s;margin-top:2px}
+.job-card.open .job-chevron{transform:rotate(180deg)}
+
+/* Job body (expandable) */
+.job-body{display:none;border-top:1px solid #F0EFEC}
+.job-card.open .job-body{display:block}
+
+/* Items */
+.items-section{padding:14px 18px}
+.section-title{font-size:11px;font-weight:700;color:#A8A8A3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.item-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F5F4F1}
+.item-row:last-child{border-bottom:none}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:13px;font-weight:600;color:#1A1A18}
+.item-size{font-size:11px;color:#888780;margin-top:1px}
+.item-status{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.is-prod{background:#EEF2FF;color:#3730A3}
+.is-packing{background:#FEF3C7;color:#92400E}
+.is-ready{background:#D1FAE5;color:#065F46}
+.is-dispatch{background:#DBEAFE;color:#1E3A8A}
+.is-done{background:#D1FAE5;color:#065F46}
+
+/* Track link */
+.track-link-bar{padding:12px 18px;border-top:1px solid #F0EFEC;background:#F9F9FF;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.track-link-text{font-size:12px;color:#888780}
+.track-btn{padding:7px 14px;border-radius:10px;border:1.5px solid #3B5BDB;background:#fff;color:#3B5BDB;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+.track-btn:hover{background:#EEF2FF}
+
+/* Past job completed date */
+.completed-date{font-size:11px;color:#888780;margin-top:2px}
+
+/* States */
+.loading{text-align:center;padding:60px 20px;color:#888780}
+.loading-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3B5BDB;animation:ld .8s ease-in-out infinite}
+.loading-dot:nth-child(2){animation-delay:.15s}
+.loading-dot:nth-child(3){animation-delay:.3s}
+@keyframes ld{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.error-card{background:#fff;border-radius:16px;border:1px solid #FECACA;padding:32px 24px;text-align:center}
+.error-icon{font-size:32px;margin-bottom:12px}
+.error-title{font-size:16px;font-weight:700;color:#991B1B;margin-bottom:6px}
+.error-sub{font-size:13px;color:#888780;line-height:1.5}
+.empty{text-align:center;padding:40px 20px;color:#888780}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:600;color:#5F5E5A;margin-bottom:4px}
+.empty-sub{font-size:12px;color:#A8A8A3}
+.powered{font-size:11px;color:#C4C3BE;margin-top:28px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-name" id="brand-name">ES Print</div>
+    <div class="brand-tagline">Order Portal</div>
+  </div>
+
+  <div id="loading-state" class="loading">
+    <div style="margin-bottom:16px">
+      <span class="loading-dot"></span>
+      <span class="loading-dot"></span>
+      <span class="loading-dot"></span>
+    </div>
+    <div style="font-size:14px">Loading your orders...</div>
+  </div>
+
+  <div id="error-state" style="display:none">
+    <div class="error-card">
+      <div class="error-icon">🔗</div>
+      <div class="error-title" id="error-title">Portal link not found</div>
+      <div class="error-sub" id="error-sub">This portal link may be invalid. Please contact us and we'll send you a new one.</div>
+    </div>
+  </div>
+
+  <div id="portal-state" style="display:none">
+    <div class="welcome" id="welcome-msg"></div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-active" onclick="switchTab('active')">
+        Current Jobs <span class="tab-count" id="count-active">0</span>
+      </button>
+      <button class="tab" id="tab-past" onclick="switchTab('past')">
+        Past Jobs <span class="tab-count" id="count-past">0</span>
+      </button>
+    </div>
+
+    <div id="panel-active"></div>
+    <div id="panel-past" style="display:none"></div>
+  </div>
+
+  <div class="powered">Powered by ES Print · <span id="contact-brand">Event Signs</span></div>
+
+</div>
+<script>
+// ── STATUS MAP ────────────────────────────────────────────────────────────────
+const CLIENT_STATUS={
+  'Prepress':       {label:'In production',     cls:'is-prod'},
+  'Printing':       {label:'Being printed',     cls:'is-prod'},
+  'Cutting':        {label:'Being finished',    cls:'is-prod'},
+  'Handwork':       {label:'Being finished',    cls:'is-prod'},
+  'QA':             {label:'Quality check',     cls:'is-prod'},
+  'Packed':         {label:'Packed',            cls:'is-packing'},
+  'Packed Ready':   {label:'Ready for you',     cls:'is-ready'},
+  'Dispatch Ready': {label:'Ready to dispatch', cls:'is-dispatch'},
+  'Dispatched':     {label:'On its way 🚚',     cls:'is-dispatch'},
+  'Collected':      {label:'Collected ✓',       cls:'is-done'},
+  'Outsourced':     {label:'In production',     cls:'is-prod'},
+  'Prepress Ready': {label:'In production',     cls:'is-prod'},
+  'Print Ready':    {label:'Being printed',     cls:'is-prod'},
+  'QA Ready':       {label:'Quality check',     cls:'is-prod'},
+};
+
+const BRAND_NAMES={
+  'Event Signs':'Event Signs',
+  'Sticky Stitch':'Sticky Stitch',
+  'Melbourne Trade Signs':'Melbourne Trade Signs',
+  'Melbourne Floor Wraps':'Melbourne Floor Wraps',
+};
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function getDueInfo(due){
+  if(!due)return{label:null,cls:null};
+  const now=new Date();now.setHours(0,0,0,0);
+  const d=new Date(due);d.setHours(0,0,0,0);
+  const diff=Math.round((d-now)/(864e5));
+  const dateStr=d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+  if(diff<0)return{label:'Was due '+dateStr,cls:'pill-due-over'};
+  if(diff===0)return{label:'Due today',cls:'pill-due-today'};
+  if(diff===1)return{label:'Due tomorrow',cls:'pill-due-tmr'};
+  return{label:'Due '+dateStr,cls:'pill-due-ok'};
+}
+
+function getOverallStatus(items){
+  // Return the "worst" (earliest in flow) status to show the job's overall state
+  const order=['Prepress','Prepress Ready','Printing','Print Ready','Cutting','Handwork','QA','QA Ready','Packed','Packed Ready','Dispatch Ready','Dispatched','Collected'];
+  if(!items||!items.length)return'Prepress';
+  let min=order.length;
+  items.forEach(i=>{const idx=order.indexOf(i.status);if(idx!==-1&&idx<min)min=idx;});
+  return order[min]||items[0].status||'Prepress';
+}
+
+function stripIdSuffix(id){
+  // Strip collision suffix: ES-1080-a3f → ES-1080
+  return(id||'').replace(/-[0-9a-f]{3}$/i,'');
+}
+
+function renderJobCard(job,isPast){
+  const items=job.items||[];
+  const dueInfo=getDueInfo(job.due);
+  const overallStatus=getOverallStatus(items);
+  const cs=CLIENT_STATUS[overallStatus]||{label:'In production',cls:'is-prod'};
+  const brandName=BRAND_NAMES[job.brand]||job.brand||'ES Print';
+  const cleanId=stripIdSuffix(job.id);
+
+  // Completed date for past jobs
+  const completedStr=isPast&&job.archived
+    ?new Date(job.archived).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})
+    :null;
+
+  // Items list
+  const itemsHtml=items.map(i=>{
+    const ist=CLIENT_STATUS[i.status]||{label:'In production',cls:'is-prod'};
+    return`<div class="item-row">
+      <div class="item-info">
+        <div class="item-name">${esc(i.qty||'')}× ${esc(i.stock||'')}</div>
+        ${i.size?`<div class="item-size">${esc(i.size)} mm</div>`:''}
+      </div>
+      <span class="item-status ${ist.cls}">${ist.label}</span>
+    </div>`;
+  }).join('');
+
+  // Track button — only show if job has a tracking token
+  const trackBar=job.trackingToken&&!isPast?`<div class="track-link-bar">
+    <span class="track-link-text">Track this order in detail</span>
+    <a class="track-btn" href="https://dispatchprint.netlify.app/?id=${encodeURIComponent(job.id)}&token=${encodeURIComponent(job.trackingToken)}&api=${encodeURIComponent(API)}" target="_blank">📦 Track order →</a>
+  </div>`:'';
+
+  return`<div class="job-card" id="jc-${esc(cleanId)}">
+    <div class="job-head" onclick="toggleCard('${esc(cleanId)}')">
+      <div style="flex:1;min-width:0">
+        <div class="job-id">${esc(cleanId)}</div>
+        <div class="job-client">${esc(job.client)}</div>
+        ${job.ref?`<div class="job-ref">"${esc(job.ref)}"</div>`:''}
+        ${completedStr?`<div class="completed-date">Completed ${esc(completedStr)}</div>`:''}
+        <div class="job-pills">
+          ${isPast
+            ?`<span class="pill pill-done">✓ Complete</span>`
+            :`<span class="item-status ${cs.cls}" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${cs.label}</span>`}
+          ${dueInfo.label&&!isPast?`<span class="pill ${dueInfo.cls}">${dueInfo.label}</span>`:''}
+          <span class="pill pill-dispatch">${esc(job.dispatch||'Pick Up')}</span>
+          ${job.brand?`<span class="pill pill-brand">${esc(brandName)}</span>`:''}
+        </div>
+      </div>
+      <span class="job-chevron">⌄</span>
+    </div>
+    <div class="job-body">
+      <div class="items-section">
+        <div class="section-title">Items (${items.length})</div>
+        ${itemsHtml||'<div style="font-size:13px;color:#888780">No items</div>'}
+      </div>
+      ${trackBar}
+    </div>
+  </div>`;
+}
+
+function toggleCard(cleanId){
+  const card=document.getElementById('jc-'+cleanId);
+  if(card)card.classList.toggle('open');
+}
+
+function switchTab(tab){
+  document.getElementById('tab-active').classList.toggle('active',tab==='active');
+  document.getElementById('tab-past').classList.toggle('active',tab==='past');
+  document.getElementById('panel-active').style.display=tab==='active'?'':'none';
+  document.getElementById('panel-past').style.display=tab==='past'?'':'none';
+}
+
+function showError(title,sub){
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('error-state').style.display='';
+  if(title)document.getElementById('error-title').textContent=title;
+  if(sub)document.getElementById('error-sub').textContent=sub;
+}
+
+function renderPortal(data){
+  const {customer,activeJobs,completedJobs}=data;
+  const firstName=customer.firstName||customer.name.split(' ')[0];
+
+  // Welcome message
+  document.getElementById('welcome-msg').innerHTML=
+    `Hi <strong>${esc(firstName)}</strong> 👋 Here's a live view of all your orders with us.`;
+
+  // Tab counts
+  document.getElementById('count-active').textContent=activeJobs.length;
+  document.getElementById('count-past').textContent=completedJobs.length;
+
+  // Brand name — use most common brand across jobs
+  const allBrands=[...activeJobs,...completedJobs].map(j=>j.brand).filter(Boolean);
+  const topBrand=allBrands.sort((a,b)=>allBrands.filter(x=>x===b).length-allBrands.filter(x=>x===a).length)[0];
+  const brandName=BRAND_NAMES[topBrand]||'ES Print';
+  document.getElementById('brand-name').textContent=brandName;
+  document.getElementById('contact-brand').textContent=brandName;
+  document.title=customer.name+' · Orders';
+
+  // Active jobs panel
+  document.getElementById('panel-active').innerHTML=activeJobs.length
+    ?activeJobs.map(j=>renderJobCard(j,false)).join('')
+    :`<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No active orders</div><div class="empty-sub">Nothing in production right now.</div></div>`;
+
+  // Past jobs panel
+  document.getElementById('panel-past').innerHTML=completedJobs.length
+    ?completedJobs.map(j=>renderJobCard(j,true)).join('')
+    :`<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No past orders yet</div><div class="empty-sub">Your completed orders will appear here.</div></div>`;
+
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('portal-state').style.display='';
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+const params=new URLSearchParams(window.location.search);
+const token=params.get('c');
+const API=params.get('api')||'https://script.google.com/macros/s/AKfycbwi3QJFO4xVwByQEXp6TsWi7D-rVDTFJhX0YFpDe09OwI7tmGcH3ik6d3Z0FRkO6ru1Vw/exec';
+
+if(!token){
+  showError('No portal link','This page needs a portal link to load your orders. Please contact us.');
+}else{
+  fetch(API+'?action=getClientPortal&token='+encodeURIComponent(token))
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok){showError('Portal link not found','This link may be invalid or has expired. Please contact us for a new one.');}
+      else{renderPortal(d);}
+    })
+    .catch(()=>showError('Could not connect','Please check your internet connection and try again.'));
+}
+</script>
+</body>
+</html>
